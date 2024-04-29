@@ -1,0 +1,6 @@
+{
+    "tasks": {
+        "gen": "deno run --allow-read --allow-write tools/gen.ts ./app/src/main/java/jlox/",
+        "run-script": "gradle run --args=\"../temp.jlox\""
+    }
+}
