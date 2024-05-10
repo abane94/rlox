@@ -1,7 +1,7 @@
 use crate::token_type::Token;
-use crate::types::expr::{Expr};
-use crate::types::Literal;
+use crate::types::expr::Expr;
 use crate::types::stmt::Stmt;
+use crate::types::Literal;
 
 use super::Print;
 
@@ -51,9 +51,15 @@ pub fn var(name: &Token, initializer: &Box<Expr>) -> String {
     todo!()
 }
 
-
-
 fn parenthesize(name: &str, exprs: Vec<&Expr>) -> String {
-    let ls: String = exprs.iter().map(|expr| expr.print()).collect::<Vec<String>>().join(" ");
+    let ls: String = exprs
+        .iter()
+        .map(|expr| {
+            let ret = expr.print();
+            // println!("{}", &ret);
+            return ret;
+        })
+        .collect::<Vec<String>>()
+        .join(" ");
     format!("( {} {} )", name, ls)
 }

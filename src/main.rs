@@ -9,6 +9,7 @@ use scanner::Scanner;
 use token_type::{TokenType, Token, Literal};
 use types::expr::Expr;
 use types::operations::Print;
+use parser::Parser;
 
 mod token_type;
 mod scanner;
@@ -55,6 +56,16 @@ fn run(source: &str) {
 
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(tokens.clone());
+    let expression = parser.parse();
+
+    // stop if there wan an error
+    // TODO: handle result in parser()
+    
+
+    let representation = expression.print();
+    println!("{}", representation);
+
     for (i, token) in tokens.iter().enumerate() {
         println!("{}: {}", i, token);
     }
