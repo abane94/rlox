@@ -1,4 +1,4 @@
-use crate::token_type::{Token,Literal};
+use crate::token_type::{Token};
 use crate::types::expr::Expr;
 
 #[derive(Debug, PartialEq, Clone, PartialOrd)]

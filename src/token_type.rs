@@ -1,4 +1,4 @@
-use std::{path::Display, fmt::Display as FmtDisplay};
+use std::{fmt::Display as FmtDisplay};
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Ord, PartialOrd, Hash)]
 pub enum TokenType {

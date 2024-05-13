@@ -92,7 +92,7 @@ impl Scanner {
 
     fn advance(&mut self) -> &char {
         let char = self.source.get(self.current);
-        self.current = self.current + 1;
+        self.current += 1;
         char.unwrap()
     }
 
@@ -185,9 +185,9 @@ impl Scanner {
             self.advance();
         }
         let str = String::from_iter(self.source.get((self.start)..(self.current)).unwrap());
-        let tTypeOpt = Scanner::keyword(&str);
-        match tTypeOpt {
-            Some(tType) => self.add_token(tType),
+        let t_type_opt = Scanner::keyword(&str);
+        match t_type_opt {
+            Some(t_type) => self.add_token(t_type),
             None => self.add_token(TokenType::IDENTIFIER)
         }
     }
