@@ -8,7 +8,7 @@ use crate::{
 use std::fmt;
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub struct ParseError(pub String);
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -28,114 +28,114 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Expr {
+    pub fn parse(&mut self) -> Result<Expr, ParseError> {
         return self.expression();
         // TODO: add error handling once the production functions have it
     }
 
-    fn expression(&mut self) -> Expr {
+    fn expression(&mut self) -> Result<Expr, ParseError> {
         self.equality()
     }
 
-    fn equality(&mut self) -> Expr {
+    fn equality(&mut self) -> Result<Expr, ParseError> {
         let mut expr = self.comparison();
 
         while let Some(_) = self._match(&[TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL]) {
             let operator = self.previous();
-            let right = self.comparison();
-            expr = Expr::Binary {
-                left: Box::new(expr),
+            let right = self.comparison()?;
+            expr = Ok(Expr::Binary {
+                left: Box::new(expr?),
                 operator,
                 right: Box::new(right),
-            };
+            });
         }
 
         return expr;
     }
 
-    fn comparison(&mut self) -> Expr {
+    fn comparison(&mut self) -> Result<Expr, ParseError> {
         let mut expr = self.term();
 
         while let Some(_) = self._match(&[TokenType::GREATER]) {
             let operator = self.previous();
-            let right = self.term();
-            expr = Expr::Binary {
-                left: Box::new(expr),
+            let right = self.term()?;
+            expr = Ok(Expr::Binary {
+                left: Box::new(expr?),
                 operator,
                 right: Box::new(right),
-            };
+            });
         }
         expr
     }
 
-    fn term(&mut self) -> Expr {
+    fn term(&mut self) -> Result<Expr, ParseError> {
         let mut expr = self.factor();
         while let Some(_) = self._match(&[TokenType::MINUS, TokenType::PLUS]) {
             let operator = self.previous();
-            let right = self.factor();
-            expr = Expr::Binary {
-                left: Box::new(expr),
+            let right = self.factor()?;
+            expr = Ok(Expr::Binary {
+                left: Box::new(expr?),
                 operator,
                 right: Box::new(right),
-            };
+            });
         }
         expr
     }
 
-    fn factor(&mut self) -> Expr {
+    fn factor(&mut self) -> Result<Expr, ParseError> {
         let mut expr = self.unary();
         while let Some(_) = self._match(&[TokenType::SLASH, TokenType::STAR]) {
             let operator = self.previous();
-            let right = self.unary();
-            expr = Expr::Binary {
-                left: Box::new(expr),
+            let right = self.unary()?;
+            expr = Ok(Expr::Binary {
+                left: Box::new(expr?),
                 operator,
                 right: Box::new(right),
-            };
+            });
         }
         expr
     }
 
-    fn unary(&mut self) -> Expr {
+    fn unary(&mut self) -> Result<Expr, ParseError> {
         if let Some(_) = self._match(&[TokenType::BANG, TokenType::MINUS]) {
             let operator = self.previous();
-            let right = self.unary();
-            return Expr::Unary {
+            let right = self.unary()?;
+            return Ok(Expr::Unary {
                 operator,
                 right: Box::new(right),
-            };
+            });
         }
 
         return self.primary();
     }
 
-    fn primary(&mut self) -> Expr {
+    fn primary(&mut self) -> Result<Expr, ParseError> {
         let mtch = self._match(&[TokenType::FALSE, TokenType::TRUE, TokenType::NIL]);
         if let Some(typ) = mtch {
             match typ {
-                TokenType::FALSE => Expr::Literal {
+                TokenType::FALSE => Ok(Expr::Literal {
                     value: Literal::Boolean(false),
-                },
-                TokenType::NIL => Expr::Literal {
+                }),
+                TokenType::NIL => Ok(Expr::Literal {
                     value: Literal::None(),
-                },
-                TokenType::TRUE => Expr::Literal {
+                }),
+                TokenType::TRUE => Ok(Expr::Literal {
                     value: Literal::Boolean(true),
-                },
-                _ => panic!("Random match"),
+                }),
+                _ => Err(ParseError("Random match".to_owned())),
             }
         } else if let Some(_) = self._match(&[TokenType::NUMBER, TokenType::STRING]) {
-            Expr::Literal {
+            Ok(Expr::Literal {
                 value: self.previous().literal,
-            }
+            })
         } else if let Some(_) = self._match(&[TokenType::LEFT_PAREN]) {
-            let expr = self.expression();
-            self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression");
-            Expr::Grouping {
+            let expr = self.expression()?;
+            self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression")?;
+            Ok(Expr::Grouping {
                 expression: Box::new(expr),
-            }
+            })
         } else {
-            panic!("Un matched primary")
+            Err(ParseError("Un matched primary".to_owned()))
         }
         // TODO: add error handling, this method will return a Result, withc means, all above will
         // be the same

@@ -1,6 +1,7 @@
 #![feature(let_chains)]
 
 use std::error::Error;
+use std::string::ParseError;
 use std::{process::exit, path::PathBuf};
 use std::{fs, env};
 use std::io::{self, Write};
@@ -57,14 +58,20 @@ fn run(source: &str) {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens();
     let mut parser = Parser::new(tokens.clone());
-    let expression = parser.parse();
+    let expression_result = parser.parse();
 
     // stop if there wan an error
-    // TODO: handle result in parser()
-    
 
-    let representation = expression.print();
-    println!("{}", representation);
+    match expression_result {
+        Ok(_) => {
+            let representation = expression_result.unwrap().print();
+            println!("{}", representation);
+        },
+        Err(err) => println!("Parse Error: {}", err.0),
+        // stop here
+    }
+
+
 
     for (i, token) in tokens.iter().enumerate() {
         println!("{}: {}", i, token);
